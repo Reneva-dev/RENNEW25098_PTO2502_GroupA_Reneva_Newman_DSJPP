@@ -218,3 +218,20 @@ strong {
     text-overflow: ellipsis;
   }
 }
+
+.playButton {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 0 10px;
+  color: #444;
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.playButton:hover {
+  color: #000;
+  transform: scale(1.15);
+}
+
