@@ -38,7 +38,7 @@ export const AudioPlayerProvider = ({ children }) => {
     };
   }, []);
 
-  // keep audio playing across navigation: audioRef is stable (in provider)
+  // load audio source and metadata
   const loadAudio = useCallback((src, meta = {}) => {
     const audio = audioRef.current;
     if (!src) return;
@@ -53,9 +53,7 @@ export const AudioPlayerProvider = ({ children }) => {
   const play = useCallback(async () => {
     try {
       await audioRef.current.play();
-      // if play succeeds, event listeners will set isPlaying
     } catch (err) {
-      // play could be prevented by browser autoplay policies
       console.warn("Audio play blocked:", err);
     }
   }, []);
@@ -80,13 +78,18 @@ export const AudioPlayerProvider = ({ children }) => {
     audioRef.current.volume = Math.max(0, Math.min(1, v));
   }, []);
 
+  // NEW: Play episode helper to load and play an episode easily
+  const playEpisode = useCallback(({ audioUrl, title: episodeTitle }) => {
+    if (!audioUrl) return;
+    loadAudio(audioUrl, { title: episodeTitle });
+    play();
+  }, [loadAudio, play]);
+
   // beforeunload confirmation when audio is playing
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (isPlaying) {
-        // Standard for modern browsers
         e.preventDefault();
-        // Chrome requires returnValue to be set
         e.returnValue = "";
         return "";
       }
@@ -131,6 +134,7 @@ export const AudioPlayerProvider = ({ children }) => {
     togglePlay,
     seek,
     setVolume,
+    playEpisode, // <-- new function exposed here
   };
 
   return <AudioPlayerContext.Provider value={value}>{children}</AudioPlayerContext.Provider>;
@@ -144,3 +148,4 @@ export const useAudioPlayer = () => {
   }
   return ctx;
 };
+
