@@ -210,13 +210,15 @@ strong {
     order: 0;
     width: 100%;
   }
-  .episodeDesc {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.episodeDesc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 4;
+  line-clamp: 4; /* standard (experimental) */
+}
+
 }
 
 .playButton {
