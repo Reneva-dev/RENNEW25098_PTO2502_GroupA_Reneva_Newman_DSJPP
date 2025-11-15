@@ -3,28 +3,28 @@ import { useNavigate } from "react-router-dom";
 import styles from "./PodcastDetail.module.css";
 import { formatDate } from "../../utils/formatDate";
 import GenreTags from "../UI/GenreTags";
-import { useAudioPlayer } from "../../context/AudioPlayerContext"; // <-- added
+import { useAudioPlayer } from "../../context/AudioPlayerContext"; // <-- NEW
 
 export default function PodcastDetail({ podcast, genres }) {
   const [selectedSeasonIndex, setSelectedSeasonIndex] = useState(0);
   const season = podcast.seasons[selectedSeasonIndex];
   const navigate = useNavigate();
-  const { loadAudio, play } = useAudioPlayer(); // <-- added
 
-  const playEpisode = (ep) => {
-    if (!ep.audioUrl) {
-      console.warn("Episode has no audioUrl:", ep);
-      return;
-    }
+  const { playEpisode } = useAudioPlayer(); // <-- NEW
 
-    loadAudio(ep.audioUrl, {
-      title: `${podcast.title} — ${ep.title}`,
+  // Play selected episode
+  const handlePlayEpisode = (ep, index) => {
+    playEpisode({
+      title: ep.title,
+      audioUrl: ep.file, // real API field
+      podcastTitle: podcast.title,
+      episodeNumber: index + 1,
     });
-    play();
   };
 
   return (
     <div className={styles.container}>
+      
       {/* Back Button */}
       <button className={styles.backButton} onClick={() => navigate(-1)}>
         ← Back
@@ -84,6 +84,7 @@ export default function PodcastDetail({ podcast, genres }) {
               </p>
             </div>
           </div>
+
           <select
             value={selectedSeasonIndex}
             onChange={(e) => setSelectedSeasonIndex(Number(e.target.value))}
@@ -102,26 +103,27 @@ export default function PodcastDetail({ podcast, genres }) {
           {season.episodes.map((ep, index) => (
             <div key={index} className={styles.episodeCard}>
               <img className={styles.episodeCover} src={season.image} alt="" />
+              
               <div className={styles.episodeInfo}>
                 <p className={styles.episodeTitle}>
                   Episode {index + 1}: {ep.title}
                 </p>
                 <p className={styles.episodeDesc}>{ep.description}</p>
-
-                {/* 🔊 Play Episode Button */}
-                {ep.audioUrl && (
-                  <button
-                    className={styles.playButton}
-                    onClick={() => playEpisode(ep)}
-                  >
-                    ▶ Play Episode
-                  </button>
-                )}
               </div>
+
+              {/* ▶ Inline play button */}
+              <button
+                className={styles.playButton}
+                onClick={() => handlePlayEpisode(ep, index)}
+              >
+                ▶
+              </button>
             </div>
           ))}
         </div>
+
       </div>
     </div>
   );
 }
+
