@@ -1,0 +1,12 @@
+.appHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background: white;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.appHeader a {
+  text-decoration: none;
+  color: black;
+}
