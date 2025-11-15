@@ -1,13 +1,27 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ← add this
+import { useNavigate } from "react-router-dom";
 import styles from "./PodcastDetail.module.css";
 import { formatDate } from "../../utils/formatDate";
 import GenreTags from "../UI/GenreTags";
+import { useAudioPlayer } from "../../context/AudioPlayerContext"; // <-- added
 
 export default function PodcastDetail({ podcast, genres }) {
   const [selectedSeasonIndex, setSelectedSeasonIndex] = useState(0);
   const season = podcast.seasons[selectedSeasonIndex];
-  const navigate = useNavigate(); // ← hook for navigation
+  const navigate = useNavigate();
+  const { loadAudio, play } = useAudioPlayer(); // <-- added
+
+  const playEpisode = (ep) => {
+    if (!ep.audioUrl) {
+      console.warn("Episode has no audioUrl:", ep);
+      return;
+    }
+
+    loadAudio(ep.audioUrl, {
+      title: `${podcast.title} — ${ep.title}`,
+    });
+    play();
+  };
 
   return (
     <div className={styles.container}>
@@ -83,6 +97,7 @@ export default function PodcastDetail({ podcast, genres }) {
           </select>
         </div>
 
+        {/* Episode List */}
         <div className={styles.episodeList}>
           {season.episodes.map((ep, index) => (
             <div key={index} className={styles.episodeCard}>
@@ -92,6 +107,16 @@ export default function PodcastDetail({ podcast, genres }) {
                   Episode {index + 1}: {ep.title}
                 </p>
                 <p className={styles.episodeDesc}>{ep.description}</p>
+
+                {/* 🔊 Play Episode Button */}
+                {ep.audioUrl && (
+                  <button
+                    className={styles.playButton}
+                    onClick={() => playEpisode(ep)}
+                  >
+                    ▶ Play Episode
+                  </button>
+                )}
               </div>
             </div>
           ))}
