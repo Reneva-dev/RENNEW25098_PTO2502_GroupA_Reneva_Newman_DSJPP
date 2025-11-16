@@ -1,5 +1,6 @@
 .container {
-  padding: 20px;
+  width: min(1100px, 90%);
+  margin: 20px auto;
 }
 
 .title {
@@ -8,26 +9,25 @@
 }
 
 .sortBar {
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
 }
 
 .sortDropdown {
   padding: 6px 10px;
   border-radius: 6px;
-  font-size: 1rem;
 }
 
 .empty {
-  opacity: 0.7;
+  opacity: 0.6;
   margin-top: 40px;
-  font-style: italic;
+  text-align: center;
 }
 
 .showGroup {
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 .showTitle {
@@ -39,16 +39,16 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 12px;
-  background: #ffffff;
+  background: white;
+  padding: 14px;
   border: 1px solid #ddd;
   border-radius: 10px;
   margin-bottom: 10px;
 }
 
 .cover {
-  width: 80px;
-  height: 80px;
+  width: 90px;
+  height: 90px;
   border-radius: 10px;
   object-fit: cover;
 }
@@ -59,64 +59,42 @@
 
 .episodeTitle {
   font-size: 1.1rem;
-  margin: 0;
+  font-weight: 600;
 }
 
-/* ⭐ Human-friendly metadata appearance */
 .meta {
-  color: #555;
-  font-size: 0.9rem;
-  margin-top: 4px;
+  opacity: 0.75;
+  margin-top: 5px;
 }
 
-/* ⭐ NEW (Step 6E): Make title clickable and clean */
-.link {
-  text-decoration: none;
-  color: inherit;
-}
-
-.link:hover .episodeTitle {
-  text-decoration: underline;
-}
-
-/* ⭐ NEW (Step 6B/6E): Play button styling */
-.playButton {
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-  margin-right: 10px;
-  transition: transform 0.2s ease;
-}
-
-.playButton:hover {
-  transform: scale(1.25);
-}
-
-/* Remove button (X) */
+/* Buttons */
+.playButton,
 .removeBtn {
   background: none;
   border: none;
-  font-size: 1.5rem;
   cursor: pointer;
-  color: #d22;
+  font-size: 1.4rem;
   transition: transform 0.2s ease;
 }
 
+.playButton:hover,
 .removeBtn:hover {
-  transform: scale(1.2);
+  transform: scale(1.25);
 }
 
-/* OPTIONAL: Heart button hover if you add hearts here later */
-.favouriteButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.8rem;
-  margin-left: 10px;
-  transition: transform 0.2s ease;
+.removeBtn {
+  color: #d11;
 }
 
-.favouriteButton:hover {
-  transform: scale(1.2);
+@media (max-width: 600px) {
+  .episodeCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cover {
+    width: 100%;
+    height: auto;
+  }
 }
+
