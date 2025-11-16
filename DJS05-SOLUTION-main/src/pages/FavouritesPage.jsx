@@ -1,9 +1,13 @@
 import { useFavourites } from "../context/FavouritesContext";
+import { useAudioPlayer } from "../context/AudioPlayerContext";   // <-- NEW
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { timeAgo } from "../utils/timeAgo";                      // <-- NEW
 import styles from "./FavouritesPage.module.css";
 
 export default function FavouritesPage() {
   const { favourites, toggleFavourite } = useFavourites();
+  const { playEpisode } = useAudioPlayer();                      // <-- NEW
 
   const [sortOption, setSortOption] = useState("newest");
 
@@ -31,6 +35,7 @@ export default function FavouritesPage() {
         }
       });
     });
+
     return groups;
   }, [favourites, sortOption]);
 
@@ -65,6 +70,8 @@ export default function FavouritesPage() {
 
           {grouped[show].map((ep) => (
             <div key={ep.id} className={styles.episodeCard}>
+              
+              {/* Episode Image */}
               <img
                 src={ep.image || "/placeholder.jpg"}
                 alt={ep.episodeTitle}
@@ -72,15 +79,34 @@ export default function FavouritesPage() {
               />
 
               <div className={styles.info}>
-                <h3 className={styles.episodeTitle}>
-                  Episode {ep.episodeIndex + 1}: {ep.episodeTitle}
-                </h3>
+                
+                {/* Link to show detail */}
+                <Link to={`/show/${ep.podcastId}`} className={styles.link}>
+                  <h3 className={styles.episodeTitle}>
+                    Episode {ep.episodeIndex + 1}: {ep.episodeTitle}
+                  </h3>
+                </Link>
 
+                {/* Human-friendly timestamp */}
                 <p className={styles.meta}>
-                  Season {ep.seasonNumber} • Added:{" "}
-                  {new Date(ep.addedAt).toLocaleString()}
+                  Season {ep.seasonNumber} • Added {timeAgo(ep.addedAt)}
                 </p>
               </div>
+
+              {/* ▶ PLAY BUTTON (STEP 6B) */}
+              <button
+                className={styles.playButton}
+                onClick={() =>
+                  playEpisode({
+                    title: ep.episodeTitle,
+                    audioUrl: ep.audioUrl,
+                    podcastTitle: ep.podcastTitle,
+                    episodeNumber: ep.episodeIndex + 1,
+                  })
+                }
+              >
+                ▶
+              </button>
 
               {/* Remove Button */}
               <button
@@ -95,6 +121,7 @@ export default function FavouritesPage() {
               >
                 ✖
               </button>
+
             </div>
           ))}
         </div>
@@ -102,3 +129,4 @@ export default function FavouritesPage() {
     </div>
   );
 }
+
