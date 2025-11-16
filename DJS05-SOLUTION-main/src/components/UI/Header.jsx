@@ -4,17 +4,19 @@ import { Link } from "react-router-dom";
 export default function Header() {
   return (
     <header className={styles.appHeader}>
-      <h1>
-        <Link to="/">🎙️ Podcast App</Link>
-      </h1>
+      <div className={styles.inner}>
+        <h1 className={styles.logo}>
+          <Link to="/">🎙️ Podcast App</Link>
+        </h1>
 
-      {/* NEW: Favourites Navigation Link */}
-      <nav className={styles.navLinks}>
-        <Link to="/favourites" className={styles.navItem}>
-          ❤️ Favourites
-        </Link>
-      </nav>
+        <nav className={styles.nav}>
+          <Link to="/favourites" className={styles.navLink}>
+            ⭐ Favourites
+          </Link>
+        </nav>
+      </div>
     </header>
   );
 }
+
 
