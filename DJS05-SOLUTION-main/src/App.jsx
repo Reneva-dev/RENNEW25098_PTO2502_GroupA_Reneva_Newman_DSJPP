@@ -5,34 +5,33 @@ import ShowDetail from "./pages/ShowDetail";
 
 import { PodcastProvider } from "./context/PodcastContext";
 import { AudioPlayerProvider } from "./context/AudioPlayerContext";
-import { FavouritesProvider } from "./context/FavouritesContext"; // <-- NEW
-
-import FavouritesPage from "./pages/FavouritesPage"; // <-- NEW IMPORT
+import { FavouritesProvider } from "./context/FavouritesContext";
+import { ToastProvider } from "./context/ToastContext";
 
 import AudioPlayer from "./components/UI/AudioPlayer";
+import FavouritesPage from "./pages/FavouritesPage";
+import Toast from "./components/UI/Toast";
 
 export default function App() {
   return (
     <>
       <Header />
 
-      {/* Wrap entire app inside all providers */}
       <PodcastProvider>
         <AudioPlayerProvider>
           <FavouritesProvider>
+            <ToastProvider>
+              <div style={{ paddingBottom: "90px" }}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/show/:id" element={<ShowDetail />} />
+                  <Route path="/favourites" element={<FavouritesPage />} />
+                </Routes>
+              </div>
 
-            {/* MAIN WRAPPER - adds bottom padding so the audio player doesn't overlap content */}
-            <div style={{ paddingBottom: "90px" }}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/show/:id" element={<ShowDetail />} />
-                <Route path="/favourites" element={<FavouritesPage />} /> {/* <-- NEW ROUTE */}
-              </Routes>
-            </div>
-
-            {/* 🌟 Persistent Global Audio Player */}
-            <AudioPlayer />
-
+              <AudioPlayer />
+              <Toast />
+            </ToastProvider>
           </FavouritesProvider>
         </AudioPlayerProvider>
       </PodcastProvider>
