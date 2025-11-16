@@ -4,7 +4,9 @@ import styles from "./PodcastDetail.module.css";
 import { formatDate } from "../../utils/formatDate";
 import GenreTags from "../UI/GenreTags";
 import { useAudioPlayer } from "../../context/AudioPlayerContext";
-import { useFavourites } from "../../context/FavouritesContext"; // <-- Import favourites context
+
+// ⭐ NEW: import favourites context
+import { useFavourites } from "../../context/FavouritesContext";
 
 export default function PodcastDetail({ podcast, genres }) {
   const [selectedSeasonIndex, setSelectedSeasonIndex] = useState(0);
@@ -12,7 +14,7 @@ export default function PodcastDetail({ podcast, genres }) {
   const navigate = useNavigate();
 
   const { playEpisode } = useAudioPlayer();
-  const { favourites, toggleFavourite } = useFavourites(); // <-- Use context
+  const { isFavourited, toggleFavourite } = useFavourites(); // ⭐ NEW
 
   // Play selected episode
   const handlePlayEpisode = (ep, index) => {
@@ -24,40 +26,15 @@ export default function PodcastDetail({ podcast, genres }) {
     });
   };
 
-  // Helper to check if an episode is favourited
-  const isFavourited = (episode) => {
-    // Assume episode id or title is unique identifier
-    // You can customize this to use a better unique ID if available
-    return favourites.some(
-      (fav) =>
-        fav.episodeTitle === episode.title &&
-        fav.podcastId === podcast.id &&
-        fav.seasonIndex === selectedSeasonIndex
-    );
-  };
-
-  // Handle favourite toggle
-  const handleToggleFavourite = (episode, index) => {
-    toggleFavourite({
-      podcastId: podcast.id,
-      podcastTitle: podcast.title,
-      seasonIndex: selectedSeasonIndex,
-      seasonTitle: season.title,
-      episodeIndex: index,
-      episodeTitle: episode.title,
-      episodeDescription: episode.description,
-      episodeAudioUrl: episode.file,
-      dateAdded: new Date().toISOString(),
-      image: season.image, // For display purposes
-    });
-  };
-
   return (
     <div className={styles.container}>
+      
+      {/* Back Button */}
       <button className={styles.backButton} onClick={() => navigate(-1)}>
         ← Back
       </button>
 
+      {/* Header */}
       <div className={styles.header}>
         <img src={podcast.image} alt="Podcast Cover" className={styles.cover} />
         <div>
@@ -84,7 +61,11 @@ export default function PodcastDetail({ podcast, genres }) {
               <div>
                 <p>Total Episodes:</p>
                 <strong>
-                  {podcast.seasons.reduce((acc, s) => acc + s.episodes.length, 0)} Episodes
+                  {podcast.seasons.reduce(
+                    (acc, s) => acc + s.episodes.length,
+                    0
+                  )}{" "}
+                  Episodes
                 </strong>
               </div>
             </div>
@@ -92,6 +73,7 @@ export default function PodcastDetail({ podcast, genres }) {
         </div>
       </div>
 
+      {/* Season Details */}
       <div className={styles.seasonDetails}>
         <div className={styles.seasonIntro}>
           <div className={styles.left}>
@@ -101,7 +83,9 @@ export default function PodcastDetail({ podcast, genres }) {
                 Season {selectedSeasonIndex + 1}: {season.title}
               </h3>
               <p>{season.description}</p>
-              <p className={styles.releaseInfo}>{season.episodes.length} Episodes</p>
+              <p className={styles.releaseInfo}>
+                {season.episodes.length} Episodes
+              </p>
             </div>
           </div>
 
@@ -118,9 +102,11 @@ export default function PodcastDetail({ podcast, genres }) {
           </select>
         </div>
 
+        {/* Episode List */}
         <div className={styles.episodeList}>
           {season.episodes.map((ep, index) => (
             <div key={index} className={styles.episodeCard}>
+              
               <img className={styles.episodeCover} src={season.image} alt="" />
 
               <div className={styles.episodeInfo}>
@@ -130,25 +116,48 @@ export default function PodcastDetail({ podcast, genres }) {
                 <p className={styles.episodeDesc}>{ep.description}</p>
               </div>
 
+              {/* ❤️ Favourite Button */}
+              <button
+                className={styles.favouriteButton}
+                onClick={() =>
+                  toggleFavourite({
+                    podcastId: podcast.id,
+                    podcastTitle: podcast.title,
+                    seasonIndex: selectedSeasonIndex,
+                    episodeIndex: index,
+                    seasonNumber: selectedSeasonIndex + 1,
+                    episodeTitle: ep.title,
+                    episodeDescription: ep.description,
+                    audioUrl: ep.file,
+                  })
+                }
+                aria-label={
+                  isFavourited(podcast.id, selectedSeasonIndex, index)
+                    ? "Unfavourite episode"
+                    : "Favourite episode"
+                }
+              >
+                {isFavourited(podcast.id, selectedSeasonIndex, index)
+                  ? "❤️"
+                  : "🤍"}
+              </button>
+
               {/* ▶ Inline play button */}
-              <button className={styles.playButton} onClick={() => handlePlayEpisode(ep, index)}>
+              <button
+                className={styles.playButton}
+                onClick={() => handlePlayEpisode(ep, index)}
+              >
                 ▶
               </button>
 
-              {/* ❤️ Favourite toggle button */}
-              <button
-                className={styles.favouriteButton}
-                onClick={() => handleToggleFavourite(ep, index)}
-                aria-label={isFavourited(ep) ? "Unfavourite episode" : "Favourite episode"}
-              >
-                {isFavourited(ep) ? "❤️" : "🤍"}
-              </button>
             </div>
           ))}
         </div>
+
       </div>
     </div>
   );
 }
+
 
 
