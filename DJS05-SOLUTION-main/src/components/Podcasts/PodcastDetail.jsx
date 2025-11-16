@@ -3,20 +3,23 @@ import { useNavigate } from "react-router-dom";
 import styles from "./PodcastDetail.module.css";
 import { formatDate } from "../../utils/formatDate";
 import GenreTags from "../UI/GenreTags";
-import { useAudioPlayer } from "../../context/AudioPlayerContext"; // <-- NEW
+import { useAudioPlayer } from "../../context/AudioPlayerContext";
+
+// ⭐ NEW: import FavouriteButton
+import FavouriteButton from "../UI/FavouriteButton";
 
 export default function PodcastDetail({ podcast, genres }) {
   const [selectedSeasonIndex, setSelectedSeasonIndex] = useState(0);
   const season = podcast.seasons[selectedSeasonIndex];
   const navigate = useNavigate();
 
-  const { playEpisode } = useAudioPlayer(); // <-- NEW
+  const { playEpisode } = useAudioPlayer();
 
   // Play selected episode
   const handlePlayEpisode = (ep, index) => {
     playEpisode({
       title: ep.title,
-      audioUrl: ep.file, // real API field
+      audioUrl: ep.file,
       podcastTitle: podcast.title,
       episodeNumber: index + 1,
     });
@@ -111,6 +114,13 @@ export default function PodcastDetail({ podcast, genres }) {
                 <p className={styles.episodeDesc}>{ep.description}</p>
               </div>
 
+              {/* ❤️ Favourite Button */}
+              <FavouriteButton
+                episode={ep}
+                showTitle={podcast.title}
+                seasonNumber={selectedSeasonIndex + 1}
+              />
+
               {/* ▶ Inline play button */}
               <button
                 className={styles.playButton}
@@ -126,4 +136,5 @@ export default function PodcastDetail({ podcast, genres }) {
     </div>
   );
 }
+
 
