@@ -17,10 +17,12 @@ export default function App() {
     <>
       <Header />
 
-      <PodcastProvider>
-        <AudioPlayerProvider>
-          <FavouritesProvider>
-            <ToastProvider>
+      {/* FIXED ORDER — ToastProvider goes ABOVE FavouritesProvider */}
+      <ToastProvider>
+        <FavouritesProvider>
+          <AudioPlayerProvider>
+            <PodcastProvider>
+
               <div style={{ paddingBottom: "90px" }}>
                 <Routes>
                   <Route path="/" element={<Home />} />
@@ -31,10 +33,11 @@ export default function App() {
 
               <AudioPlayer />
               <Toast />
-            </ToastProvider>
-          </FavouritesProvider>
-        </AudioPlayerProvider>
-      </PodcastProvider>
+
+            </PodcastProvider>
+          </AudioPlayerProvider>
+        </FavouritesProvider>
+      </ToastProvider>
     </>
   );
 }
