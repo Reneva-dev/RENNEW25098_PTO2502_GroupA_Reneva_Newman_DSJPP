@@ -123,12 +123,22 @@ export default function PodcastDetail({ podcast, genres }) {
                   toggleFavourite({
                     podcastId: podcast.id,
                     podcastTitle: podcast.title,
+
                     seasonIndex: selectedSeasonIndex,
-                    episodeIndex: index,
                     seasonNumber: selectedSeasonIndex + 1,
+
+                    episodeIndex: index,
+                    episodeNumber: index + 1,
+
                     episodeTitle: ep.title,
                     episodeDescription: ep.description,
+
                     audioUrl: ep.file,
+
+                    image: season.image,         // season artwork
+                    podcastImage: podcast.image, // show artwork
+
+                    addedAt: Date.now(),         // timestamp for favourites page
                   })
                 }
                 aria-label={
@@ -158,6 +168,3 @@ export default function PodcastDetail({ podcast, genres }) {
     </div>
   );
 }
-
-
-
