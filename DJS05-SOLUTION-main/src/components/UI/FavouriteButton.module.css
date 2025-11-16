@@ -1,0 +1,15 @@
+.heartBtn {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.heartBtn:hover {
+  transform: scale(1.2);
+}
+
+.filled {
+  color: red;
+}
