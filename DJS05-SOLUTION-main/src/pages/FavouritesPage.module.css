@@ -78,3 +78,20 @@
 .removeBtn:hover {
   transform: scale(1.2);
 }
+
+.link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.link:hover .episodeTitle {
+  text-decoration: underline;
+}
+
+.playButton {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  margin-right: 10px;
+}
