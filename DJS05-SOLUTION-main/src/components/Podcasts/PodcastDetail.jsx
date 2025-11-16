@@ -4,8 +4,6 @@ import styles from "./PodcastDetail.module.css";
 import { formatDate } from "../../utils/formatDate";
 import GenreTags from "../UI/GenreTags";
 import { useAudioPlayer } from "../../context/AudioPlayerContext";
-
-// ⭐ NEW: import favourites context
 import { useFavourites } from "../../context/FavouritesContext";
 
 export default function PodcastDetail({ podcast, genres }) {
@@ -14,9 +12,8 @@ export default function PodcastDetail({ podcast, genres }) {
   const navigate = useNavigate();
 
   const { playEpisode } = useAudioPlayer();
-  const { isFavourited, toggleFavourite } = useFavourites(); // ⭐ NEW
+  const { isFavourited, toggleFavourite } = useFavourites();
 
-  // Play selected episode
   const handlePlayEpisode = (ep, index) => {
     playEpisode({
       title: ep.title,
@@ -28,8 +25,6 @@ export default function PodcastDetail({ podcast, genres }) {
 
   return (
     <div className={styles.container}>
-      
-      {/* Back Button */}
       <button className={styles.backButton} onClick={() => navigate(-1)}>
         ← Back
       </button>
@@ -37,6 +32,7 @@ export default function PodcastDetail({ podcast, genres }) {
       {/* Header */}
       <div className={styles.header}>
         <img src={podcast.image} alt="Podcast Cover" className={styles.cover} />
+
         <div>
           <h1 className={styles.title}>{podcast.title}</h1>
           <p className={styles.description}>{podcast.description}</p>
@@ -73,11 +69,11 @@ export default function PodcastDetail({ podcast, genres }) {
         </div>
       </div>
 
-      {/* Season Details */}
+      {/* Season Section */}
       <div className={styles.seasonDetails}>
         <div className={styles.seasonIntro}>
           <div className={styles.left}>
-            <img className={styles.seasonCover} src={season.image} />
+            <img className={styles.seasonCover} src={season.image} alt="" />
             <div>
               <h3>
                 Season {selectedSeasonIndex + 1}: {season.title}
@@ -104,66 +100,71 @@ export default function PodcastDetail({ podcast, genres }) {
 
         {/* Episode List */}
         <div className={styles.episodeList}>
-          {season.episodes.map((ep, index) => (
-            <div key={index} className={styles.episodeCard}>
-              
-              <img className={styles.episodeCover} src={season.image} alt="" />
+          {season.episodes.map((ep, index) => {
+            const isFav = isFavourited(
+              podcast.id,
+              selectedSeasonIndex,
+              index
+            );
 
-              <div className={styles.episodeInfo}>
-                <p className={styles.episodeTitle}>
-                  Episode {index + 1}: {ep.title}
-                </p>
-                <p className={styles.episodeDesc}>{ep.description}</p>
+            return (
+              <div key={index} className={styles.episodeCard}>
+                <img
+                  className={styles.episodeCover}
+                  src={season.image}
+                  alt=""
+                />
+
+                <div className={styles.episodeInfo}>
+                  <p className={styles.episodeTitle}>
+                    Episode {index + 1}: {ep.title}
+                  </p>
+                  <p className={styles.episodeDesc}>{ep.description}</p>
+                </div>
+
+                {/* ❤️ Favourite Button */}
+                <button
+                  className={styles.favouriteButton}
+                  onClick={() =>
+                    toggleFavourite({
+                      id: `${podcast.id}-${selectedSeasonIndex}-${index}`,
+
+                      podcastId: podcast.id,
+                      podcastTitle: podcast.title,
+
+                      seasonIndex: selectedSeasonIndex,
+                      seasonNumber: selectedSeasonIndex + 1,
+
+                      episodeIndex: index,
+                      episodeNumber: index + 1,
+
+                      episodeTitle: ep.title,
+                      episodeDescription: ep.description,
+
+                      audioUrl: ep.file,
+
+                      image: season.image,
+                      podcastImage: podcast.image,
+
+                      addedAt: Date.now(),
+                    })
+                  }
+                  aria-label={isFav ? "Unfavourite episode" : "Favourite episode"}
+                >
+                  {isFav ? "❤️" : "🤍"}
+                </button>
+
+                {/* ▶ Play Button */}
+                <button
+                  className={styles.playButton}
+                  onClick={() => handlePlayEpisode(ep, index)}
+                >
+                  ▶
+                </button>
               </div>
-
-              {/* ❤️ Favourite Button */}
-              <button
-                className={styles.favouriteButton}
-                onClick={() =>
-                  toggleFavourite({
-                    podcastId: podcast.id,
-                    podcastTitle: podcast.title,
-
-                    seasonIndex: selectedSeasonIndex,
-                    seasonNumber: selectedSeasonIndex + 1,
-
-                    episodeIndex: index,
-                    episodeNumber: index + 1,
-
-                    episodeTitle: ep.title,
-                    episodeDescription: ep.description,
-
-                    audioUrl: ep.file,
-
-                    image: season.image,         // season artwork
-                    podcastImage: podcast.image, // show artwork
-
-                    addedAt: Date.now(),         // timestamp for favourites page
-                  })
-                }
-                aria-label={
-                  isFavourited(podcast.id, selectedSeasonIndex, index)
-                    ? "Unfavourite episode"
-                    : "Favourite episode"
-                }
-              >
-                {isFavourited(podcast.id, selectedSeasonIndex, index)
-                  ? "❤️"
-                  : "🤍"}
-              </button>
-
-              {/* ▶ Inline play button */}
-              <button
-                className={styles.playButton}
-                onClick={() => handlePlayEpisode(ep, index)}
-              >
-                ▶
-              </button>
-
-            </div>
-          ))}
+            );
+          })}
         </div>
-
       </div>
     </div>
   );
