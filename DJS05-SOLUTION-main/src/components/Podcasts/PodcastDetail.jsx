@@ -29,7 +29,6 @@ export default function PodcastDetail({ podcast, genres }) {
         ← Back
       </button>
 
-      {/* Header */}
       <div className={styles.header}>
         <img src={podcast.image} alt="Podcast Cover" className={styles.cover} />
 
@@ -85,7 +84,9 @@ export default function PodcastDetail({ podcast, genres }) {
             </div>
           </div>
 
+          {/* FIXED - name attribute added */}
           <select
+            name="seasonSelect"
             value={selectedSeasonIndex}
             onChange={(e) => setSelectedSeasonIndex(Number(e.target.value))}
             className={styles.dropdown}
