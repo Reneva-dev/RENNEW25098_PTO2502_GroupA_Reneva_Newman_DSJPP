@@ -1,9 +1,32 @@
-:root {
-  --grey-text: #555;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
+html,
 body {
-  font-family: "Inter", sans-serif;
-  margin: 0;
-  background: #f9f9f9;
+  font-family: system-ui, Arial, sans-serif;
+  background: #fafafa;
+  color: #222;
+  min-height: 100%;
 }
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+.container {
+  width: min(1100px, 90%);
+  margin: 0 auto;
+}
+
