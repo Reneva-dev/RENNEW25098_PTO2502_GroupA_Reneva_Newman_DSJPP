@@ -1,12 +1,51 @@
 .appHeader {
-  display: flex;
-  justify-content: space-between;
-  padding: 1rem;
-  background: white;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #ddd;
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-.appHeader a {
+.inner {
+  width: min(1100px, 90%);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo a {
+  font-size: 1.6rem;
+  font-weight: bold;
   text-decoration: none;
-  color: black;
+  color: #222;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navLink {
+  text-decoration: none;
+  font-size: 1rem;
+  color: #444;
+  transition: color 0.2s ease;
+}
+
+.navLink:hover {
+  color: #000;
+}
+
+@media (max-width: 600px) {
+  .logo a {
+    font-size: 1.3rem;
+  }
+
+  .navLink {
+    font-size: 0.9rem;
+  }
 }
