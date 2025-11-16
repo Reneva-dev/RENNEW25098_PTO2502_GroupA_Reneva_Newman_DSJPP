@@ -1,43 +1,56 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useToast } from "./ToastContext";
 
 const FavouritesContext = createContext();
 
 export function FavouritesProvider({ children }) {
   const [favourites, setFavourites] = useState([]);
+  const { showToast } = useToast();
 
-  // Restore from localStorage on load
+  // Restore saved favourites
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("favourites") || "[]");
     setFavourites(saved);
   }, []);
 
-  // Save to localStorage on update
+  // Save on update
   useEffect(() => {
     localStorage.setItem("favourites", JSON.stringify(favourites));
   }, [favourites]);
 
-  // Build the unique ID for each favourite
   const makeId = (podcastId, seasonIndex, episodeIndex) =>
     `${podcastId}-${seasonIndex}-${episodeIndex}`;
 
-  // Check if an episode is favourited
   const isFavourited = (podcastId, seasonIndex, episodeIndex) => {
     const id = makeId(podcastId, seasonIndex, episodeIndex);
     return favourites.some((fav) => fav.id === id);
   };
 
-  // Add/remove favourite
   const toggleFavourite = (episode) => {
-    const id = episode.id;
+    const exists = favourites.some((f) => f.id === episode.id);
 
-    // If exists → remove it
-    if (favourites.some((f) => f.id === id)) {
-      setFavourites(favourites.filter((f) => f.id !== id));
+    if (exists) {
+      setFavourites(favourites.filter((f) => f.id !== episode.id));
+
+      showToast(
+        `Removed "${episode.episodeTitle}"`,
+        "error",
+        () => setFavourites([...favourites, episode])
+      );
+
       return;
     }
 
-    // Else add it
     setFavourites([...favourites, episode]);
+
+    showToast(
+      `Added "${episode.episodeTitle}" ❤️`,
+      "success",
+      () =>
+        setFavourites(
+          favourites.filter((f) => f.id !== episode.id)
+        )
+    );
   };
 
   return (
