@@ -7,9 +7,23 @@
   margin-bottom: 20px;
 }
 
+.sortBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sortDropdown {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
 .empty {
-  font-style: italic;
   opacity: 0.7;
+  margin-top: 40px;
+  font-style: italic;
 }
 
 .showGroup {
@@ -17,25 +31,50 @@
 }
 
 .showTitle {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin-bottom: 10px;
 }
 
 .episodeCard {
-  background: #ffffff;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 8px;
   display: flex;
-  justify-content: space-between;
-  border: 1px solid #e1e1e1;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin-bottom: 10px;
 }
 
-.epTitle {
-  font-weight: bold;
+.cover {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.info {
+  flex-grow: 1;
+}
+
+.episodeTitle {
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 .meta {
+  color: #555;
   font-size: 0.9rem;
-  color: gray;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #d22;
+}
+
+.removeBtn:hover {
+  transform: scale(1.2);
 }
