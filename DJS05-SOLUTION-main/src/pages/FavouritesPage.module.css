@@ -62,23 +62,14 @@
   margin: 0;
 }
 
+/* ⭐ Human-friendly metadata appearance */
 .meta {
   color: #555;
   font-size: 0.9rem;
+  margin-top: 4px;
 }
 
-.removeBtn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #d22;
-}
-
-.removeBtn:hover {
-  transform: scale(1.2);
-}
-
+/* ⭐ NEW (Step 6E): Make title clickable and clean */
 .link {
   text-decoration: none;
   color: inherit;
@@ -88,10 +79,44 @@
   text-decoration: underline;
 }
 
+/* ⭐ NEW (Step 6B/6E): Play button styling */
 .playButton {
   background: none;
   border: none;
   font-size: 1.4rem;
   cursor: pointer;
   margin-right: 10px;
+  transition: transform 0.2s ease;
+}
+
+.playButton:hover {
+  transform: scale(1.25);
+}
+
+/* Remove button (X) */
+.removeBtn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #d22;
+  transition: transform 0.2s ease;
+}
+
+.removeBtn:hover {
+  transform: scale(1.2);
+}
+
+/* OPTIONAL: Heart button hover if you add hearts here later */
+.favouriteButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.8rem;
+  margin-left: 10px;
+  transition: transform 0.2s ease;
+}
+
+.favouriteButton:hover {
+  transform: scale(1.2);
 }
