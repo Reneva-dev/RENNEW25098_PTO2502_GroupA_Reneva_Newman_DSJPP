@@ -5,73 +5,45 @@ const FavouritesContext = createContext();
 export function FavouritesProvider({ children }) {
   const [favourites, setFavourites] = useState([]);
 
-  // Load from localStorage once
+  // Restore from localStorage on load
   useEffect(() => {
-    const stored = localStorage.getItem("favourites");
-    if (stored) {
-      setFavourites(JSON.parse(stored));
-    }
+    const saved = JSON.parse(localStorage.getItem("favourites") || "[]");
+    setFavourites(saved);
   }, []);
 
-  // Save whenever favourites change
+  // Save to localStorage on update
   useEffect(() => {
     localStorage.setItem("favourites", JSON.stringify(favourites));
   }, [favourites]);
 
-  // Generate a unique ID for each episode
-  const makeId = (podcastId, seasonIndex, episodeIndex) => {
-    return `${podcastId}-${seasonIndex}-${episodeIndex}`;
-  };
+  // Build the unique ID for each favourite
+  const makeId = (podcastId, seasonIndex, episodeIndex) =>
+    `${podcastId}-${seasonIndex}-${episodeIndex}`;
 
-  // Check if a given episode is already favourited
+  // Check if an episode is favourited
   const isFavourited = (podcastId, seasonIndex, episodeIndex) => {
     const id = makeId(podcastId, seasonIndex, episodeIndex);
     return favourites.some((fav) => fav.id === id);
   };
 
-  // Add a favourite
-  const addFavourite = (data) => {
-    const id = makeId(data.podcastId, data.seasonIndex, data.episodeIndex);
+  // Add/remove favourite
+  const toggleFavourite = (episode) => {
+    const id = episode.id;
 
-    // Prevent duplicates
-    if (favourites.some((f) => f.id === id)) return;
-
-    const newFav = {
-      ...data,
-      id,
-      addedAt: Date.now(),
-    };
-
-    setFavourites((prev) => [...prev, newFav]);
-  };
-
-  // Remove a favourite
-  const removeFavourite = (podcastId, seasonIndex, episodeIndex) => {
-    const id = makeId(podcastId, seasonIndex, episodeIndex);
-    setFavourites((prev) => prev.filter((f) => f.id !== id));
-  };
-
-  // Toggle favourite
-  const toggleFavourite = (data) => {
-    const { podcastId, seasonIndex, episodeIndex } = data;
-
-    if (isFavourited(podcastId, seasonIndex, episodeIndex)) {
-      removeFavourite(podcastId, seasonIndex, episodeIndex);
-    } else {
-      addFavourite(data);
+    // If exists → remove it
+    if (favourites.some((f) => f.id === id)) {
+      setFavourites(favourites.filter((f) => f.id !== id));
+      return;
     }
-  };
 
-  const value = {
-    favourites,
-    addFavourite,
-    removeFavourite,
-    isFavourited,
-    toggleFavourite,
+    // Else add it
+    setFavourites([...favourites, episode]);
   };
 
   return (
-    <FavouritesContext.Provider value={value}>
+    <FavouritesContext.Provider
+      value={{ favourites, toggleFavourite, isFavourited }}
+    >
       {children}
     </FavouritesContext.Provider>
   );
