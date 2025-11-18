@@ -7,6 +7,9 @@ import {
   Loading,
   Error,
 } from "../components";
+
+import RecommendedCarousel from "../components/Recommended/RecommendedCarousel"; // ⭐ NEW
+
 import styles from "./Home.module.css";
 import { genres } from "../data";
 import { PodcastContext } from "../context/PodcastContext";
@@ -30,6 +33,12 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
+
+      {/* ⭐ Recommended Carousel appears only when data is loaded */}
+      {!loading && !error && podcasts.length > 0 && (
+        <RecommendedCarousel podcasts={podcasts} />
+      )}
+
       <section className={styles.controls}>
         <SearchBar />
         <GenreFilter genres={genres} />
@@ -37,6 +46,7 @@ export default function Home() {
       </section>
 
       {loading && <Loading message="Loading podcasts..." />}
+
       {error && (
         <Error message={`Error occurred while fetching podcasts: ${error}`} />
       )}
