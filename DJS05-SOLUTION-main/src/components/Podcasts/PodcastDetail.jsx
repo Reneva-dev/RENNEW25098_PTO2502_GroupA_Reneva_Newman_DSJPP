@@ -1,137 +1,150 @@
-.container {
-  width: min(1100px, 90%);
-  margin: 20px auto;
-  color: var(--text);
-}
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import styles from "./PodcastDetail.module.css";
+import GenreTags from "../UI/GenreTags";
+import { formatDate } from "../../utils/formatDate";
 
-.backButton {
-  margin-bottom: 20px;
-  padding: 6px 12px;
-  background: var(--control-bg);
-  border: 1px solid var(--muted-border);
-  color: var(--text);
-  border-radius: 6px;
-  cursor: pointer;
-}
+import { useAudioPlayer } from "../../context/AudioPlayerContext";
+import { useFavourites } from "../../context/FavouritesContext";
 
-.backButton:hover {
-  background: var(--surface);
-}
+export default function PodcastDetail({ podcast, genres }) {
+  const [selectedSeasonIndex, setSelectedSeasonIndex] = useState(0);
+  const season = podcast.seasons[selectedSeasonIndex];
+  const navigate = useNavigate();
 
-.header {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 25px;
-}
+  const { playEpisode } = useAudioPlayer();
+  const { isFavourited, toggleFavourite } = useFavourites();
 
-.cover {
-  width: 200px;
-  height: 200px;
-  border-radius: 12px;
-  object-fit: cover;
-}
+  const handlePlayEpisode = (ep, index) => {
+    playEpisode({
+      title: ep.title,
+      audioUrl: ep.file,
+      podcastTitle: podcast.title,
+      episodeNumber: index + 1,
+    });
+  };
 
-.title {
-  font-size: 2rem;
-  margin-bottom: 10px;
-}
+  return (
+    <div className={styles.container}>
+      <button className={styles.backButton} onClick={() => navigate(-1)}>
+        ← Back
+      </button>
 
-.description {
-  opacity: 0.85;
-}
+      {/* HEADER */}
+      <div className={styles.header}>
+        <img src={podcast.image} className={styles.cover} alt="" />
 
-.metaInfo {
-  margin-top: 20px;
-}
+        <div>
+          <h1 className={styles.title}>{podcast.title}</h1>
+          <p className={styles.description}>{podcast.description}</p>
 
-.seasonInfo {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-}
+          <div className={styles.metaInfo}>
+            <div className={styles.seasonInfo}>
+              <div>
+                <p>Genres</p>
+                <GenreTags genres={genres} />
+              </div>
 
-.seasonDetails {
-  margin-top: 30px;
-}
+              <div>
+                <p>Last Updated:</p>
+                <strong>{formatDate(podcast.updated)}</strong>
+              </div>
 
-.seasonIntro {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
+              <div>
+                <p>Total Seasons:</p>
+                <strong>{podcast.seasons.length}</strong>
+              </div>
 
-.left {
-  display: flex;
-  gap: 15px;
-}
+              <div>
+                <p>Total Episodes:</p>
+                <strong>
+                  {podcast.seasons.reduce(
+                    (acc, s) => acc + s.episodes.length,
+                    0
+                  )}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-.seasonCover {
-  width: 120px;
-  height: 120px;
-  border-radius: 10px;
-}
+      {/* SEASON SELECTOR */}
+      <div className={styles.seasonDetails}>
+        <div className={styles.seasonIntro}>
+          <div className={styles.left}>
+            <img src={season.image} className={styles.seasonCover} alt="" />
+            <div>
+              <h3>
+                Season {selectedSeasonIndex + 1}: {season.title}
+              </h3>
+              <p>{season.description}</p>
+              <p className={styles.releaseInfo}>
+                {season.episodes.length} Episodes
+              </p>
+            </div>
+          </div>
 
-.dropdown {
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: var(--control-bg);
-  border: 1px solid var(--muted-border);
-  color: var(--text);
-}
+          <select
+            value={selectedSeasonIndex}
+            onChange={(e) => setSelectedSeasonIndex(Number(e.target.value))}
+            className={styles.dropdown}
+          >
+            {podcast.seasons.map((s, i) => (
+              <option key={i} value={i}>
+                Season {i + 1}
+              </option>
+            ))}
+          </select>
+        </div>
 
-.episodeList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+        {/* EPISODES */}
+        <div className={styles.episodeList}>
+          {season.episodes.map((ep, index) => {
+            const fav = isFavourited(podcast.id, selectedSeasonIndex, index);
 
-.episodeCard {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: var(--card-bg);
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid var(--muted-border);
-  box-shadow: 0 2px 6px var(--shadow);
-}
+            return (
+              <div key={index} className={styles.episodeCard}>
+                <img src={season.image} className={styles.episodeCover} alt="" />
 
-.episodeCover {
-  width: 90px;
-  height: 90px;
-  border-radius: 8px;
-}
+                <div className={styles.episodeInfo}>
+                  <p className={styles.episodeTitle}>
+                    Episode {index + 1}: {ep.title}
+                  </p>
+                  <p className={styles.episodeDesc}>{ep.description}</p>
+                </div>
 
-.episodeInfo {
-  flex-grow: 1;
-}
+                {/* ❤️ */}
+                <button
+                  className={styles.favouriteButton}
+                  onClick={() =>
+                    toggleFavourite({
+                      podcastId: podcast.id,
+                      podcastTitle: podcast.title,
+                      seasonIndex: selectedSeasonIndex,
+                      seasonNumber: selectedSeasonIndex + 1,
+                      episodeIndex: index,
+                      episodeTitle: ep.title,
+                      image: season.image,
+                    })
+                  }
+                >
+                  {fav ? "❤️" : "🤍"}
+                </button>
 
-.episodeTitle {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: var(--text);
-}
-
-.episodeDesc {
-  opacity: 0.8;
-  margin-top: 4px;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-.favouriteButton,
-.playButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.6rem;
-  color: var(--text);
-}
-
-.favouriteButton:hover,
-.playButton:hover {
-  transform: scale(1.2);
+                {/* ▶ */}
+                <button
+                  className={styles.playButton}
+                  onClick={() => handlePlayEpisode(ep, index)}
+                >
+                  ▶
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 }
 
