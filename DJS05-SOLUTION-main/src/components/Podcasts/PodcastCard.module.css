@@ -2,8 +2,8 @@
   background: var(--card-bg);
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 2px 6px var(--shadow);
   border: 1px solid var(--muted-border);
+  box-shadow: 0 2px 6px var(--shadow);
   cursor: pointer;
   transition: transform 0.2s, background-color 0.25s ease, color 0.25s ease;
 }
@@ -28,7 +28,6 @@
   color: var(--text-muted);
 }
 
-/* Genre tags inside cards use global theme vars */
 .tag {
   background: var(--tag-bg);
   color: var(--tag-text);
@@ -36,7 +35,6 @@
   margin-right: 0.5rem;
   margin-top: 0.5rem;
   border-radius: 4px;
-  display: inline-block;
   font-size: 0.8rem;
 }
 
