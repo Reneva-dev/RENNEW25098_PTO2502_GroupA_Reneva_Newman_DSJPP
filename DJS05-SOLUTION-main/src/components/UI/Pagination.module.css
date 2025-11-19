@@ -5,15 +5,34 @@
   gap: 0.5rem;
   padding: 1rem 0;
 }
+
+/* Default page button */
 .pageButton {
   padding: 0.5rem 0.75rem;
   border-radius: 999px;
-  background-color: #eee;
+  background-color: var(--surface);
+  color: var(--text);
   font-size: 1rem;
-  border: none;
+  border: 1px solid var(--muted-border);
   cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
+
+/* Hover effect (light + dark mode) */
+.pageButton:hover {
+  background-color: var(--card-bg);
+  border-color: var(--border);
+}
+
+/* Active page button */
 .active {
-  background-color: #2563eb;
-  color: white;
+  background-color: #2563eb; /* Accent blue, same as your style */
+  color: #ffffff;
+  border: 1px solid #2563eb;
+}
+
+/* Hover active button */
+.active:hover {
+  background-color: #1e4fc7;
+  border-color: #1e4fc7;
 }
