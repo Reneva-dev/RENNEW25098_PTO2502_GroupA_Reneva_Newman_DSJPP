@@ -17,13 +17,15 @@ import Toast from "./components/UI/Toast";
 export default function App() {
   return (
     <>
-      <Header />
-
       <ThemeProvider>
         <ToastProvider>
           <FavouritesProvider>
             <AudioPlayerProvider>
               <PodcastProvider>
+
+                {/* Header MUST be inside ThemeProvider */}
+                <Header />
+
                 <div style={{ paddingBottom: "90px" }}>
                   <Routes>
                     <Route path="/" element={<Home />} />
@@ -34,6 +36,7 @@ export default function App() {
 
                 <AudioPlayer />
                 <Toast />
+
               </PodcastProvider>
             </AudioPlayerProvider>
           </FavouritesProvider>
@@ -42,3 +45,4 @@ export default function App() {
     </>
   );
 }
+
