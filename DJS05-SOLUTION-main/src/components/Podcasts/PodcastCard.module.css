@@ -1,10 +1,11 @@
 .card {
-  background: white;
+  background: var(--card-bg);
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px var(--shadow);
+  border: 1px solid var(--muted-border);
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s, background-color 0.25s ease, color 0.25s ease;
 }
 
 .card:hover {
@@ -18,20 +19,19 @@
 
 .card h3 {
   margin: 0.5rem 0;
+  color: var(--text);
 }
 
 .card p {
   margin: 0px;
   font-size: 0.8rem;
-  color: var(--grey-text);
+  color: var(--text-muted);
 }
 
-.tags {
-  margin: 0.5rem 0;
-}
-
+/* Genre tags inside cards use global theme vars */
 .tag {
-  background: #eee;
+  background: var(--tag-bg);
+  color: var(--tag-text);
   padding: 0.3rem 0.6rem;
   margin-right: 0.5rem;
   margin-top: 0.5rem;
@@ -42,5 +42,6 @@
 
 .updatedText {
   font-size: 0.8rem;
-  color: var(--grey-text);
+  color: var(--text-muted);
 }
+
