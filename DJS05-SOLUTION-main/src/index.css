@@ -1,25 +1,109 @@
+/* src/index.css - global styles with theme variables */
+
+/* Basic reset */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html,
-body {
-  font-family: system-ui, Arial, sans-serif;
-  background: #fafafa;
-  color: #222;
-  min-height: 100%;
+/* Theme transition helper: will be added briefly during theme changes */
+:root.theme-transition,
+html.theme-transition {
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+/* Light theme (default) variables */
+:root,
+html {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --card-bg: #ffffff;
+  --text: #111827; /* near black */
+  --muted: #6b7280;
+  --control-bg: #f3f4f6;
+  --muted-border: #e5e7eb;
+  --accent: #2563eb;
+  --btn-bg: #111827;
+  --btn-hover: #1f2937;
+  --shadow: rgba(16, 24, 40, 0.06);
+}
+
+/* Dark theme variables */
+html[data-theme="dark"] {
+  --bg: #0b0f14;
+  --surface: #0f1724;
+  --card-bg: #0f1724;
+  --text: #e6eef8;
+  --muted: #9aa4b2;
+  --control-bg: #111827;
+  --muted-border: #1f2937;
+  --accent: #60a5fa;
+  --btn-bg: #e6eef8;
+  --btn-hover: #dbeafe;
+  --shadow: rgba(2, 6, 23, 0.6);
+}
+
+/* Global layout */
+html, body {
+  height: 100%;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth color transitions for theme toggles */
+* {
+  transition: background-color 0.22s ease, color 0.22s ease, border-color 0.22s ease;
+}
+
+/* Images */
 img {
   display: block;
   max-width: 100%;
 }
 
-button {
-  font-family: inherit;
+/* Links/buttons inherit color by default */
+a {
+  color: inherit;
 }
+
+/* Utility container */
+.container {
+  width: min(1100px, 90%);
+  margin: 0 auto;
+}
+
+/* Basic card style using variables */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--muted-border);
+  box-shadow: 0 6px 18px var(--shadow);
+  border-radius: 10px;
+}
+
+/* inputs, selects and controls */
+input, select, button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--muted-border);
+  border-radius: 8px;
+}
+
+/* audio player area adjustments (optional) */
+.player {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* small helper classes (optional) */
+.small-muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 
 a {
   color: inherit;
