@@ -10,7 +10,7 @@ export default function Header() {
     <header className={styles.appHeader}>
       <div className={styles.inner}>
         <h1 className={styles.logo}>
-          <Link to="/">🎙️ Podcast App</Link>
+          <Link to="/">📻RetroTune Radio</Link>
         </h1>
 
         <nav className={styles.nav}>
