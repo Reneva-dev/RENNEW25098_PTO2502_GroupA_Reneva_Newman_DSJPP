@@ -15,7 +15,7 @@ export default function Header() {
 
         <nav className={styles.nav}>
           <Link to="/favourites" className={styles.navLink}>
-            ⭐ Favourites
+            ⭐
           </Link>
 
           {/* Theme toggle button (emoji) */}
