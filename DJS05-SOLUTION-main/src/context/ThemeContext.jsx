@@ -3,6 +3,20 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 
 const ThemeContext = createContext();
 
+/**
+ * Provides global theme state (light/dark) using CSS variables and
+ * persists the user's preference in localStorage.
+ *
+ * Features:
+ * - Reads previously saved theme from localStorage
+ * - Uses system preference as a fallback
+ * - Smooth transition animation when switching themes
+ * - Exposes `theme`, `setTheme`, and `toggleTheme` to all components
+ *
+ * @param {Object} props
+ * @param {React.ReactNode} props.children
+ */
+
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     try {
