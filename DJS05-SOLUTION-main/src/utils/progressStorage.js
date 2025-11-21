@@ -22,8 +22,7 @@ export function loadProgress(podcastId, seasonIndex, episodeIndex) {
     const key = makeProgressKey(podcastId, seasonIndex, episodeIndex);
     const raw = localStorage.getItem(key);
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return parsed;
+    return JSON.parse(raw);
   } catch (err) {
     console.error("loadProgress error:", err);
     return null;
@@ -34,7 +33,8 @@ export function markFinished(podcastId, seasonIndex, episodeIndex) {
   try {
     const key = makeStatusKey(podcastId, seasonIndex, episodeIndex);
     localStorage.setItem(key, JSON.stringify({ status: "finished", at: Date.now() }));
-    // Also set progress to duration (optional)
+
+    // also set progress to duration if a progress entry exists
     const pKey = makeProgressKey(podcastId, seasonIndex, episodeIndex);
     const current = localStorage.getItem(pKey);
     if (current) {
@@ -62,7 +62,6 @@ export function getStatus(podcastId, seasonIndex, episodeIndex) {
 
 export function resetAllProgress() {
   try {
-    // remove keys that start with our prefixes
     const keys = Object.keys(localStorage);
     for (const k of keys) {
       if (k.startsWith("listen-progress:") || k.startsWith("listen-status:")) {
