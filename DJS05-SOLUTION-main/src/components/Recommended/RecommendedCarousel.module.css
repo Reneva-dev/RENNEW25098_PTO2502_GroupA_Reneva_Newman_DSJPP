@@ -6,10 +6,13 @@
 }
 
 .heading {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
+  font-size: 1.4rem;        /* smaller size */
+  text-align: center;       /* centered */
+  margin: 0 auto 0.5rem;    /* reduced spacing */
   color: var(--text);
+  font-weight: 600;
 }
+
 
 /* --- CAROUSEL LAYOUT --- */
 .carouselContainer {
