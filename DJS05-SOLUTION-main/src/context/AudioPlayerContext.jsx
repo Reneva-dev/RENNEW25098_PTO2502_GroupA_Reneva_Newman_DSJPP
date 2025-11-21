@@ -23,7 +23,7 @@ export const AudioPlayerProvider = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  // meta identifiers for the currently loaded episode (optional)
+  // meta identifiers for the currently loaded episode
   const currentMeta = useRef({ podcastId: null, seasonIndex: null, episodeIndex: null });
 
   useEffect(() => {
@@ -32,10 +32,9 @@ export const AudioPlayerProvider = ({ children }) => {
 
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
-      // Save progress to localStorage if episode meta exists
       const { podcastId, seasonIndex, episodeIndex } = currentMeta.current;
       if (podcastId != null && seasonIndex != null && episodeIndex != null) {
-        // Save frequently but it's cheap (browser localStorage). You could throttle if desired.
+        // Save progress (avoid heavy throttling for now — fine for small apps)
         saveProgress(podcastId, seasonIndex, episodeIndex, audio.currentTime, audio.duration || duration);
       }
     };
@@ -48,7 +47,6 @@ export const AudioPlayerProvider = ({ children }) => {
     const handlePause = () => setIsPlaying(false);
     const handleEnded = () => {
       setIsPlaying(false);
-      // mark finished
       const { podcastId, seasonIndex, episodeIndex } = currentMeta.current;
       if (podcastId != null && seasonIndex != null && episodeIndex != null) {
         markFinished(podcastId, seasonIndex, episodeIndex);
@@ -74,6 +72,7 @@ export const AudioPlayerProvider = ({ children }) => {
   const loadAudio = useCallback((src, meta = {}, startAt = 0) => {
     const audio = audioRef.current;
     if (!src) return;
+    // Only reset src if different (keeps currentTime if same source)
     if (audio.src !== src) {
       audio.src = src;
       audio.load();
@@ -81,7 +80,6 @@ export const AudioPlayerProvider = ({ children }) => {
     if (meta.title) setTitle(meta.title);
     setAudioSrc(src);
 
-    // store meta for saving progress
     currentMeta.current = {
       podcastId: meta.podcastId ?? null,
       seasonIndex: typeof meta.seasonIndex === "number" ? meta.seasonIndex : null,
@@ -89,15 +87,11 @@ export const AudioPlayerProvider = ({ children }) => {
     };
 
     if (startAt > 0) {
-      // if metadata is not yet loaded, set onloadedmetadata
       const audioEl = audioRef.current;
       const trySeek = () => {
-        if (audioEl.duration && startAt <= audioEl.duration) {
-          audioEl.currentTime = startAt;
-        } else {
-          // fallback to set currentTime anyway
-          audioEl.currentTime = startAt;
-        }
+        try {
+          audioEl.currentTime = Math.min(startAt, audioEl.duration || startAt);
+        } catch {}
       };
       if (audioEl.readyState >= 1) {
         trySeek();
@@ -110,6 +104,25 @@ export const AudioPlayerProvider = ({ children }) => {
       }
     }
   }, []);
+
+  // Convenience: load and play an episode; accepts meta and optional startAt
+  const playEpisode = useCallback(
+    async ({ audioUrl, title: epTitle, podcastId, seasonIndex, episodeIndex, startAt = 0 }) => {
+      const meta = {
+        title: epTitle,
+        podcastId,
+        seasonIndex,
+        episodeIndex,
+      };
+      loadAudio(audioUrl, meta, startAt);
+      try {
+        await audioRef.current.play();
+      } catch (err) {
+        console.warn("Audio play blocked:", err);
+      }
+    },
+    [loadAudio]
+  );
 
   const play = useCallback(async () => {
     try {
@@ -128,21 +141,19 @@ export const AudioPlayerProvider = ({ children }) => {
 
   const seek = useCallback((time) => {
     const audio = audioRef.current;
-    if (!audio.duration && time > 0) {
-      // allow setting even if metadata not loaded
-      audio.currentTime = time;
-      setCurrentTime(time);
-      return;
+    try {
+      audio.currentTime = Math.min(Math.max(0, Number(time)), audio.duration || time);
+      setCurrentTime(audio.currentTime);
+    } catch (err) {
+      // ignore if seeking fails (metadata not loaded)
+      setCurrentTime(Number(time));
     }
-    audio.currentTime = Math.min(Math.max(0, Number(time)), audio.duration || time);
-    setCurrentTime(audio.currentTime);
   }, []);
 
   const setVolume = useCallback((v) => {
     audioRef.current.volume = Math.max(0, Math.min(1, v));
   }, []);
 
-  // Additional helper: get saved progress for an episode
   const getEpisodeProgress = useCallback((podcastId, seasonIndex, episodeIndex) => {
     try {
       return loadProgress(podcastId, seasonIndex, episodeIndex);
@@ -151,7 +162,6 @@ export const AudioPlayerProvider = ({ children }) => {
     }
   }, []);
 
-  // Reset all progress (localStorage) and optionally clear current meta/vars
   const resetAllProgress = useCallback(() => {
     resetProgressStorage();
   }, []);
@@ -171,6 +181,7 @@ export const AudioPlayerProvider = ({ children }) => {
     setVolume,
     getEpisodeProgress,
     resetAllProgress,
+    playEpisode, // <-- convenience wrapper for callers that expect it
   };
 
   return <AudioPlayerContext.Provider value={value}>{children}</AudioPlayerContext.Provider>;
@@ -181,4 +192,5 @@ export const useAudioPlayer = () => {
   if (!ctx) throw new Error("useAudioPlayer must be used within an AudioPlayerProvider");
   return ctx;
 };
+
 
