@@ -1,27 +1,59 @@
 // src/context/AudioPlayerContext.jsx
-import React, { createContext, useContext, useRef, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import {
+  saveProgress,
+  loadProgress,
+  markFinished,
+  resetAllProgress as resetProgressStorage,
+} from "../utils/progressStorage";
 
 const AudioPlayerContext = createContext(null);
 
 export const AudioPlayerProvider = ({ children }) => {
   const audioRef = useRef(new Audio());
   const [audioSrc, setAudioSrc] = useState(null);
+  const [title, setTitle] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [title, setTitle] = useState(null); // optional metadata
-  const [pausedBecauseHidden, setPausedBecauseHidden] = useState(false);
+  // meta identifiers for the currently loaded episode (optional)
+  const currentMeta = useRef({ podcastId: null, seasonIndex: null, episodeIndex: null });
 
-  // Setup event listeners once
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleLoadedMetadata = () => setDuration(audio.duration || 0);
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+      // Save progress to localStorage if episode meta exists
+      const { podcastId, seasonIndex, episodeIndex } = currentMeta.current;
+      if (podcastId != null && seasonIndex != null && episodeIndex != null) {
+        // Save frequently but it's cheap (browser localStorage). You could throttle if desired.
+        saveProgress(podcastId, seasonIndex, episodeIndex, audio.currentTime, audio.duration || duration);
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration || 0);
+    };
+
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
-    const handleEnded = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      // mark finished
+      const { podcastId, seasonIndex, episodeIndex } = currentMeta.current;
+      if (podcastId != null && seasonIndex != null && episodeIndex != null) {
+        markFinished(podcastId, seasonIndex, episodeIndex);
+      }
+    };
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -36,10 +68,10 @@ export const AudioPlayerProvider = ({ children }) => {
       audio.removeEventListener("pause", handlePause);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, []);
+  }, [duration]);
 
-  // load audio source and metadata
-  const loadAudio = useCallback((src, meta = {}) => {
+  // Load audio src and meta; optionally start at `startAt` seconds
+  const loadAudio = useCallback((src, meta = {}, startAt = 0) => {
     const audio = audioRef.current;
     if (!src) return;
     if (audio.src !== src) {
@@ -48,6 +80,35 @@ export const AudioPlayerProvider = ({ children }) => {
     }
     if (meta.title) setTitle(meta.title);
     setAudioSrc(src);
+
+    // store meta for saving progress
+    currentMeta.current = {
+      podcastId: meta.podcastId ?? null,
+      seasonIndex: typeof meta.seasonIndex === "number" ? meta.seasonIndex : null,
+      episodeIndex: typeof meta.episodeIndex === "number" ? meta.episodeIndex : null,
+    };
+
+    if (startAt > 0) {
+      // if metadata is not yet loaded, set onloadedmetadata
+      const audioEl = audioRef.current;
+      const trySeek = () => {
+        if (audioEl.duration && startAt <= audioEl.duration) {
+          audioEl.currentTime = startAt;
+        } else {
+          // fallback to set currentTime anyway
+          audioEl.currentTime = startAt;
+        }
+      };
+      if (audioEl.readyState >= 1) {
+        trySeek();
+      } else {
+        const once = () => {
+          trySeek();
+          audioEl.removeEventListener("loadedmetadata", once);
+        };
+        audioEl.addEventListener("loadedmetadata", once);
+      }
+    }
   }, []);
 
   const play = useCallback(async () => {
@@ -58,9 +119,7 @@ export const AudioPlayerProvider = ({ children }) => {
     }
   }, []);
 
-  const pause = useCallback(() => {
-    audioRef.current.pause();
-  }, []);
+  const pause = useCallback(() => audioRef.current.pause(), []);
 
   const togglePlay = useCallback(() => {
     if (isPlaying) pause();
@@ -69,8 +128,13 @@ export const AudioPlayerProvider = ({ children }) => {
 
   const seek = useCallback((time) => {
     const audio = audioRef.current;
-    if (!audio.duration) return;
-    audio.currentTime = Math.min(Math.max(0, Number(time)), audio.duration);
+    if (!audio.duration && time > 0) {
+      // allow setting even if metadata not loaded
+      audio.currentTime = time;
+      setCurrentTime(time);
+      return;
+    }
+    audio.currentTime = Math.min(Math.max(0, Number(time)), audio.duration || time);
     setCurrentTime(audio.currentTime);
   }, []);
 
@@ -78,48 +142,19 @@ export const AudioPlayerProvider = ({ children }) => {
     audioRef.current.volume = Math.max(0, Math.min(1, v));
   }, []);
 
-  // NEW: Play episode helper to load and play an episode easily
-  const playEpisode = useCallback(({ audioUrl, title: episodeTitle }) => {
-    if (!audioUrl) return;
-    loadAudio(audioUrl, { title: episodeTitle });
-    play();
-  }, [loadAudio, play]);
+  // Additional helper: get saved progress for an episode
+  const getEpisodeProgress = useCallback((podcastId, seasonIndex, episodeIndex) => {
+    try {
+      return loadProgress(podcastId, seasonIndex, episodeIndex);
+    } catch {
+      return null;
+    }
+  }, []);
 
-  // beforeunload confirmation when audio is playing
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (isPlaying) {
-        e.preventDefault();
-        e.returnValue = "";
-        return "";
-      }
-      return undefined;
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [isPlaying]);
-
-  // Optional: pause audio if tab hidden and resume on visible if was playing (safer UX)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      const audio = audioRef.current;
-      if (document.hidden) {
-        if (!audio.paused) {
-          audio.pause();
-          setPausedBecauseHidden(true);
-        }
-      } else {
-        if (pausedBecauseHidden) {
-          audio.play().catch(() => {});
-          setPausedBecauseHidden(false);
-        }
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [pausedBecauseHidden]);
+  // Reset all progress (localStorage) and optionally clear current meta/vars
+  const resetAllProgress = useCallback(() => {
+    resetProgressStorage();
+  }, []);
 
   const value = {
     audioRef,
@@ -134,18 +169,16 @@ export const AudioPlayerProvider = ({ children }) => {
     togglePlay,
     seek,
     setVolume,
-    playEpisode, // <-- new function exposed here
+    getEpisodeProgress,
+    resetAllProgress,
   };
 
   return <AudioPlayerContext.Provider value={value}>{children}</AudioPlayerContext.Provider>;
 };
 
-// Hook to use the audio player context
 export const useAudioPlayer = () => {
   const ctx = useContext(AudioPlayerContext);
-  if (!ctx) {
-    throw new Error("useAudioPlayer must be used within an AudioPlayerProvider");
-  }
+  if (!ctx) throw new Error("useAudioPlayer must be used within an AudioPlayerProvider");
   return ctx;
 };
 
