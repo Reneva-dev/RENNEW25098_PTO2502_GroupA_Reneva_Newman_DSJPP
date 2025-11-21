@@ -4,79 +4,118 @@ import { useToast } from "./ToastContext";
 const FavouritesContext = createContext();
 
 export function FavouritesProvider({ children }) {
+  console.log("%c[FAVOURITES] Provider mounted", "color: orange; font-weight: bold;");
+
   const [favourites, setFavourites] = useState([]);
   const { showToast } = useToast();
 
-  // Load from localStorage (runs once)
+  // -----------------------------
+  // 1️⃣ RESTORE SAVED FAVOURITES
+  // -----------------------------
   useEffect(() => {
+    console.log("%c[FAVOURITES] useEffect(restore) running...", "color: yellow");
+
     try {
-      const saved = JSON.parse(localStorage.getItem("favourites") || "[]");
+      const raw = localStorage.getItem("favourites");
+      console.log("[FAVOURITES] Raw localStorage:", raw);
+
+      const saved = JSON.parse(raw || "[]");
+      console.log("[FAVOURITES] Parsed favourites:", saved);
+
       if (Array.isArray(saved)) {
         setFavourites(saved);
+        console.log("%c[FAVOURITES] Restored favourites into state", "color: lightgreen");
+      } else {
+        console.warn("[FAVOURITES] Saved data was not an array — resetting.");
+        setFavourites([]);
       }
-    } catch {
-      console.error("Failed to parse favourites from localStorage");
+    } catch (err) {
+      console.error("[FAVOURITES] Failed to parse localStorage:", err);
+      setFavourites([]);
     }
   }, []);
 
-  // Save to localStorage whenever favourites change
+  // -----------------------------
+  // 2️⃣ SAVE FAVOURITES TO LOCAL STORAGE
+  // -----------------------------
   useEffect(() => {
-    localStorage.setItem("favourites", JSON.stringify(favourites));
+    console.log("%c[FAVOURITES] useEffect(save) triggered", "color: cyan");
+    console.log("[FAVOURITES] Saving to localStorage:", favourites);
+
+    try {
+      localStorage.setItem("favourites", JSON.stringify(favourites));
+      console.log("%c[FAVOURITES] Successfully saved", "color: lightgreen");
+    } catch (err) {
+      console.error("[FAVOURITES] Failed to save:", err);
+    }
   }, [favourites]);
 
-  // Generate a consistent ID
-  const makeId = (podcastId, seasonIndex, episodeIndex) =>
-    `${podcastId}-${seasonIndex}-${episodeIndex}`;
-
-  // Check if an episode is already favourited
-  const isFavourited = (podcastId, seasonIndex, episodeIndex) => {
-    const id = makeId(podcastId, seasonIndex, episodeIndex);
-    return favourites.some((fav) => fav.id === id);
+  // -----------------------------
+  // ID HELPER
+  // -----------------------------
+  const makeId = (podcastId, seasonIndex, episodeIndex) => {
+    const id = `${podcastId}-${seasonIndex}-${episodeIndex}`;
+    console.log("[FAVOURITES] makeId →", id);
+    return id;
   };
 
-  // Toggle favourite status
+  // -----------------------------
+  // CHECK IF EPISODE IS FAVOURITED
+  // -----------------------------
+  const isFavourited = (podcastId, seasonIndex, episodeIndex) => {
+    const id = makeId(podcastId, seasonIndex, episodeIndex);
+    const exists = favourites.some((fav) => fav.id === id);
+    console.log(`[FAVOURITES] isFavourited(${id}) →`, exists);
+    return exists;
+  };
+
+  // -----------------------------
+  // TOGGLE FAVOURITE
+  // -----------------------------
   const toggleFavourite = (episode) => {
-    const id = makeId(
-      episode.podcastId,
-      episode.seasonIndex,
-      episode.episodeIndex
-    );
+    console.log("%c[FAVOURITES] toggleFavourite called", "color: violet; font-weight: bold;");
+    console.log("[FAVOURITES] Episode received:", episode);
+
+    const id = makeId(episode.podcastId, episode.seasonIndex, episode.episodeIndex);
 
     const exists = favourites.some((f) => f.id === id);
 
     if (exists) {
-      // Remove favourite
-      setFavourites((prev) => prev.filter((f) => f.id !== id));
+      console.log("[FAVOURITES] Episode exists — removing");
+      const updated = favourites.filter((f) => f.id !== id);
+      console.log("[FAVOURITES] After removal:", updated);
 
-      // Undo uses functional set to avoid stale state
+      setFavourites(updated);
+
       showToast(
         `Removed "${episode.episodeTitle}"`,
         "error",
-        () =>
-          setFavourites((prev) => [
-            ...prev,
-            { ...episode, id, addedAt: Date.now() },
-          ])
+        () => {
+          console.log("[FAVOURITES] Undo removal — restoring");
+          setFavourites([...favourites, { ...episode, id }]);
+        }
       );
 
       return;
     }
 
-    // Build new favourite
+    // ADD NEW
     const newFav = {
       ...episode,
       id,
       addedAt: Date.now(),
     };
 
-    // Add favourite
-    setFavourites((prev) => [...prev, newFav]);
+    console.log("[FAVOURITES] Adding new favourite:", newFav);
+    setFavourites([...favourites, newFav]);
 
-    // Undo uses functional set
     showToast(
       `Added "${episode.episodeTitle}" ❤️`,
       "success",
-      () => setFavourites((prev) => prev.filter((f) => f.id !== id))
+      () => {
+        console.log("[FAVOURITES] Undo add — removing");
+        setFavourites(favourites.filter((f) => f.id !== id));
+      }
     );
   };
 
