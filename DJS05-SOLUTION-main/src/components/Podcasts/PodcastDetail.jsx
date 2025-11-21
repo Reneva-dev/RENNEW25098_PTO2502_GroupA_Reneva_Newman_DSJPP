@@ -2,32 +2,49 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./PodcastDetail.module.css";
+
 import GenreTags from "../UI/GenreTags";
 import { formatDate } from "../../utils/formatDate";
-import { formatTime } from "../../utils/formatDate"; // if your formatDate exports formatTime; otherwise you can add a small helper below
 
 import { useAudioPlayer } from "../../context/AudioPlayerContext";
 import { useFavourites } from "../../context/FavouritesContext";
 import { loadProgress, getStatus as getListenStatus } from "../../utils/progressStorage";
 
-export default function PodcastDetail({ podcast, genres }) {
+export default function PodcastDetail({ podcast = {}, genres = [] }) {
+  // Defensive defaults in case podcast is undefined when component first renders
+  const seasons = podcast.seasons || [];
   const [selectedSeasonIndex, setSelectedSeasonIndex] = useState(0);
-  const season = podcast.seasons[selectedSeasonIndex];
+  const season = seasons[selectedSeasonIndex] || { episodes: [], image: "" };
   const navigate = useNavigate();
 
-  const { loadAudio, play, seek, getEpisodeProgress } = useAudioPlayer();
+  // Audio player API
+  const {
+    loadAudio,
+    play,
+    playEpisode, // convenience wrapper (exists in the provided context)
+    getEpisodeProgress,
+  } = useAudioPlayer();
+
+  // Favourites API
   const { isFavourited, toggleFavourite } = useFavourites();
 
   // small helper to format seconds -> m:ss
   const fmt = (sec = 0) => {
-    if (!isFinite(sec)) return "0:00";
+    if (!isFinite(sec) || sec === null) return "0:00";
     const s = Math.floor(sec % 60).toString().padStart(2, "0");
     const m = Math.floor(sec / 60).toString();
     return `${m}:${s}`;
   };
 
+  // Play handler with resume prompt (Option A)
   const handlePlayEpisode = async (ep, index) => {
-    // ep.file assumed to be audio URL
+    const audioUrl = ep?.file || ep?.audio || ""; // tolerant to field name
+    if (!audioUrl) {
+      console.warn("No audio URL for episode", ep);
+      return;
+    }
+
+    // meta used by the audio player for progress tracking
     const meta = {
       title: ep.title,
       podcastId: podcast.id,
@@ -35,33 +52,71 @@ export default function PodcastDetail({ podcast, genres }) {
       episodeIndex: index,
     };
 
-    // load saved progress
-    const saved = getEpisodeProgress(podcast.id, selectedSeasonIndex, index);
-    const savedTime = saved?.currentTime ?? 0;
-    const duration = saved?.duration ?? 0;
-
-    // if user has a significant savedTime ( > 5s ) and not already finished, prompt
-    const finishedThreshold = 3; // small threshold to treat near-zero as not started
-    if (savedTime > 5 && (!duration || savedTime < (duration - 3))) {
-      const human = fmt(savedTime);
-      const resume = window.confirm(`Resume "${ep.title}" at ${human}? (OK = resume, Cancel = start over)`);
-      if (resume) {
-        // load audio and seek to savedTime then play
-        loadAudio(ep.file, meta, savedTime);
-        try {
-          await play();
-        } catch {}
-        return;
-      }
-      // else user asked to start over: load at 0
+    // Get saved progress (if any)
+    let saved = null;
+    try {
+      saved = getEpisodeProgress ? getEpisodeProgress(podcast.id, selectedSeasonIndex, index) : loadProgress(podcast.id, selectedSeasonIndex, index);
+    } catch (err) {
+      // fallback: try direct loader
+      saved = loadProgress(podcast.id, selectedSeasonIndex, index);
     }
 
-    // default: load and play from start
-    loadAudio(ep.file, meta, 0);
-    try {
-      await play();
-    } catch {}
+    const savedTime = saved?.currentTime ?? 0;
+    const savedDuration = saved?.duration ?? 0;
+
+    // If there's a meaningful saved time ( > 5s ) and not already finished, prompt user to resume
+    if (savedTime > 5 && (!savedDuration || savedTime < (savedDuration - 3))) {
+      const human = fmt(Math.floor(savedTime));
+      const resume = window.confirm(`Resume "${ep.title}" at ${human}? (OK = resume, Cancel = start over)`);
+      if (resume) {
+        // Use playEpisode convenience wrapper if available
+        if (typeof playEpisode === "function") {
+          await playEpisode({
+            audioUrl,
+            title: ep.title,
+            podcastId: podcast.id,
+            seasonIndex: selectedSeasonIndex,
+            episodeIndex: index,
+            startAt: savedTime,
+          });
+        } else {
+          // fallback: load and then play & seek
+          loadAudio(audioUrl, meta, savedTime);
+          try {
+            await play();
+          } catch (err) {
+            console.warn("Play failed:", err);
+          }
+        }
+        return;
+      }
+      // else user chose to start over; fall through to default startAt = 0
+    }
+
+    // Default: start from beginning
+    if (typeof playEpisode === "function") {
+      await playEpisode({
+        audioUrl,
+        title: ep.title,
+        podcastId: podcast.id,
+        seasonIndex: selectedSeasonIndex,
+        episodeIndex: index,
+        startAt: 0,
+      });
+    } else {
+      loadAudio(audioUrl, meta, 0);
+      try {
+        await play();
+      } catch (err) {
+        console.warn("Play failed:", err);
+      }
+    }
   };
+
+  // Defensive render guards while data loads
+  if (!podcast || !podcast.seasons) {
+    return <div className={styles.container}>Loading podcast...</div>;
+  }
 
   return (
     <div className={styles.container}>
@@ -92,13 +147,13 @@ export default function PodcastDetail({ podcast, genres }) {
 
               <div>
                 <p>Total Seasons:</p>
-                <strong>{podcast.seasons.length}</strong>
+                <strong>{seasons.length}</strong>
               </div>
 
               <div>
                 <p>Total Episodes:</p>
                 <strong>
-                  {podcast.seasons.reduce((acc, s) => acc + s.episodes.length, 0)}
+                  {seasons.reduce((acc, s) => acc + (s.episodes?.length || 0), 0)}
                 </strong>
               </div>
             </div>
@@ -106,16 +161,19 @@ export default function PodcastDetail({ podcast, genres }) {
         </div>
       </div>
 
-      {/* Season Selector */}
+      {/* SEASON SELECTOR */}
       <div className={styles.seasonDetails}>
         <div className={styles.seasonIntro}>
           <div className={styles.left}>
             <img src={season.image} className={styles.seasonCover} alt={`${season.title} cover`} />
+
             <div>
               <h3>
                 Season {selectedSeasonIndex + 1}: {season.title}
               </h3>
+
               <p>{season.description}</p>
+
               <p className={styles.releaseInfo}>
                 {season.episodes.length} Episodes
               </p>
@@ -127,7 +185,7 @@ export default function PodcastDetail({ podcast, genres }) {
             onChange={(e) => setSelectedSeasonIndex(Number(e.target.value))}
             className={styles.dropdown}
           >
-            {podcast.seasons.map((s, i) => (
+            {seasons.map((s, i) => (
               <option key={i} value={i}>
                 Season {i + 1}
               </option>
@@ -135,13 +193,18 @@ export default function PodcastDetail({ podcast, genres }) {
           </select>
         </div>
 
-        {/* Episode List */}
+        {/* EPISODES */}
         <div className={styles.episodeList}>
           {season.episodes.map((ep, index) => {
-            const fav = isFavourited(podcast.id, selectedSeasonIndex, index);
+            // determine favourite status
+            const fav = isFavourited ? isFavourited(podcast.id, selectedSeasonIndex, index) : false;
+
+            // progress info (safely loaded)
             const prog = loadProgress(podcast.id, selectedSeasonIndex, index);
             const percent =
               prog && prog.duration ? Math.min(100, Math.round((prog.currentTime / prog.duration) * 100)) : 0;
+
+            // finished status
             const status = getListenStatus ? getListenStatus(podcast.id, selectedSeasonIndex, index) : null;
             const finished = status && status.status === "finished";
 
@@ -155,10 +218,10 @@ export default function PodcastDetail({ podcast, genres }) {
                   </p>
                   <p className={styles.episodeDesc}>{ep.description}</p>
 
-                  {/* Progress indicator + finished */}
+                  {/* Progress indicator / finished badge */}
                   <div style={{ marginTop: 8 }}>
                     {finished ? (
-                      <span style={{ fontSize: 0.85, color: "var(--text-muted)" }}>✔ Completed</span>
+                      <span style={{ fontSize: 0.9, color: "var(--text-muted)" }}>✔ Completed</span>
                     ) : prog ? (
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <div style={{ flex: 1 }}>
@@ -180,7 +243,7 @@ export default function PodcastDetail({ podcast, genres }) {
                   </div>
                 </div>
 
-                {/* Favourite button */}
+                {/* Favourite Button */}
                 <button
                   className={styles.favouriteButton}
                   onClick={() =>
@@ -199,8 +262,12 @@ export default function PodcastDetail({ podcast, genres }) {
                   {fav ? "❤️" : "🤍"}
                 </button>
 
-                {/* Play button */}
-                <button className={styles.playButton} onClick={() => handlePlayEpisode(ep, index)}>
+                {/* Play Button */}
+                <button
+                  className={styles.playButton}
+                  onClick={() => handlePlayEpisode(ep, index)}
+                  aria-label={`Play ${ep.title}`}
+                >
                   ▶
                 </button>
               </div>
@@ -211,5 +278,3 @@ export default function PodcastDetail({ podcast, genres }) {
     </div>
   );
 }
-
-
