@@ -8,14 +8,52 @@ export default function RecommendedCarousel({ podcasts }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
 
-  // Random 10 podcasts — memoised so it doesn’t change during render
+  // Random 10 podcasts — memoized
   const randomSelection = useMemo(() => {
     if (!podcasts || podcasts.length === 0) return [];
-
-    // Shuffle + return first 10
     const shuffled = [...podcasts].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 10);
   }, [podcasts]);
+
+  // Clone slides for infinite loop
+  const loopedSlides = useMemo(() => {
+    return [...randomSelection, ...randomSelection];  
+  }, [randomSelection]);
+
+  // Jump back to center when reaching edges
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const cardWidth = 250;  // must match your scroll amount
+    const totalWidth = cardWidth * loopedSlides.length;
+
+    // Start in the *middle* of the cloned list
+    container.scrollLeft = (totalWidth / 2) - container.clientWidth / 2;
+
+    const handleScroll = () => {
+      const maxScroll = totalWidth - container.clientWidth;
+
+      // If user scrolls to the LEFT cloned area
+      if (container.scrollLeft < cardWidth) {
+        container.style.scrollBehavior = "auto";
+        container.scrollLeft =
+          (totalWidth / 2) + container.scrollLeft;
+        container.style.scrollBehavior = "smooth";
+      }
+
+      // If user scrolls to the RIGHT cloned area
+      if (container.scrollLeft > maxScroll - cardWidth) {
+        container.style.scrollBehavior = "auto";
+        container.scrollLeft =
+          (totalWidth / 2) - (maxScroll - container.scrollLeft);
+        container.style.scrollBehavior = "smooth";
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [loopedSlides]);
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -40,14 +78,12 @@ export default function RecommendedCarousel({ podcasts }) {
       <h2 className={styles.heading}>Recommended Shows For You</h2>
 
       <div className={styles.carouselContainer}>
-        <button className={styles.arrowLeft} onClick={scrollLeft}>
-          ‹
-        </button>
+        <button className={styles.arrowLeft} onClick={scrollLeft}>‹</button>
 
         <div className={styles.carousel} ref={scrollRef}>
-          {randomSelection.map((show) => (
+          {loopedSlides.map((show, index) => (
             <div
-              key={show.id}
+              key={index + show.id}
               className={styles.card}
               onClick={() => openShow(show.id, show.genres)}
             >
@@ -58,9 +94,7 @@ export default function RecommendedCarousel({ podcasts }) {
           ))}
         </div>
 
-        <button className={styles.arrowRight} onClick={scrollRight}>
-          ›
-        </button>
+        <button className={styles.arrowRight} onClick={scrollRight}>›</button>
       </div>
     </div>
   );
