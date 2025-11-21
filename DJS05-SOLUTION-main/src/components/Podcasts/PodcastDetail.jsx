@@ -1,3 +1,5 @@
+// src/components/Podcasts/PodcastDetail.jsx
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./PodcastDetail.module.css";
@@ -26,13 +28,18 @@ export default function PodcastDetail({ podcast, genres }) {
 
   return (
     <div className={styles.container}>
+      {/* BACK BUTTON */}
       <button className={styles.backButton} onClick={() => navigate(-1)}>
         ← Back
       </button>
 
       {/* HEADER */}
       <div className={styles.header}>
-        <img src={podcast.image} className={styles.cover} alt="" />
+        <img
+          src={podcast.image}
+          className={styles.cover}
+          alt={`${podcast.title} cover`}
+        />
 
         <div>
           <h1 className={styles.title}>{podcast.title}</h1>
@@ -69,11 +76,16 @@ export default function PodcastDetail({ podcast, genres }) {
         </div>
       </div>
 
-      {/* SEASON SELECTOR */}
+      {/* SEASON PICKER */}
       <div className={styles.seasonDetails}>
         <div className={styles.seasonIntro}>
           <div className={styles.left}>
-            <img src={season.image} className={styles.seasonCover} alt="" />
+            <img
+              src={season.image}
+              className={styles.seasonCover}
+              alt={`${season.title} cover`}
+            />
+
             <div>
               <h3>
                 Season {selectedSeasonIndex + 1}: {season.title}
@@ -98,14 +110,22 @@ export default function PodcastDetail({ podcast, genres }) {
           </select>
         </div>
 
-        {/* EPISODES */}
+        {/* EPISODE LIST */}
         <div className={styles.episodeList}>
           {season.episodes.map((ep, index) => {
-            const fav = isFavourited(podcast.id, selectedSeasonIndex, index);
+            const favourite = isFavourited(
+              podcast.id,
+              selectedSeasonIndex,
+              index
+            );
 
             return (
               <div key={index} className={styles.episodeCard}>
-                <img src={season.image} className={styles.episodeCover} alt="" />
+                <img
+                  src={season.image}
+                  className={styles.episodeCover}
+                  alt={`Episode ${index + 1} cover`}
+                />
 
                 <div className={styles.episodeInfo}>
                   <p className={styles.episodeTitle}>
@@ -114,28 +134,40 @@ export default function PodcastDetail({ podcast, genres }) {
                   <p className={styles.episodeDesc}>{ep.description}</p>
                 </div>
 
-                {/* ❤️ */}
+                {/* ❤️ FAVOURITE BUTTON */}
                 <button
                   className={styles.favouriteButton}
                   onClick={() =>
                     toggleFavourite({
+                      id: `${podcast.id}-${selectedSeasonIndex}-${index}`, // ⭐ REQUIRED FOR STORAGE
+
                       podcastId: podcast.id,
                       podcastTitle: podcast.title,
+
                       seasonIndex: selectedSeasonIndex,
                       seasonNumber: selectedSeasonIndex + 1,
+
                       episodeIndex: index,
                       episodeTitle: ep.title,
                       image: season.image,
+
+                      addedAt: Date.now(), // ⭐ Needed for sorting
                     })
                   }
+                  aria-label={
+                    favourite
+                      ? "Remove from favourites"
+                      : "Add to favourites"
+                  }
                 >
-                  {fav ? "❤️" : "🤍"}
+                  {favourite ? "❤️" : "🤍"}
                 </button>
 
-                {/* ▶ */}
+                {/* ▶ PLAY BUTTON */}
                 <button
                   className={styles.playButton}
                   onClick={() => handlePlayEpisode(ep, index)}
+                  aria-label="Play episode"
                 >
                   ▶
                 </button>
@@ -147,4 +179,3 @@ export default function PodcastDetail({ podcast, genres }) {
     </div>
   );
 }
-
