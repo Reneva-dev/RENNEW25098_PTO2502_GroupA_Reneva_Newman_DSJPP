@@ -1,57 +1,77 @@
-/* src/components/UI/Header.module.css */
+/* ------------------ HEADER WRAPPER ------------------ */
+
 .appHeader {
   width: 100%;
-  background: var(--bg);
-  border-bottom: 1px solid var(--muted-border);
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
   padding: 12px 0;
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 
+/* A centered container */
 .inner {
   width: min(1100px, 90%);
   margin: 0 auto;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Left + Right */
   align-items: center;
+  position: relative; /* Needed for centering title absolutely */
 }
 
-.logo a {
-  font-size: 1.6rem;
-  font-weight: bold;
+/* ------------------ CENTERED TITLE ------------------ */
+
+.title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;          /* Larger title */
+  font-weight: 800;
+  text-align: center;
+  color: var(--text);
+  pointer-events: none;     /* Prevent blocking right-side buttons */
+}
+
+.title a {
   text-decoration: none;
   color: var(--text);
+  pointer-events: auto;     /* Restore click for link */
 }
 
-.nav {
+/* ------------------ RIGHT CONTROLS ------------------ */
+
+.rightControls {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
+/* Favourites link */
 .navLink {
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: var(--text);
-  padding: 6px 8px;
+  padding: 6px 10px;
   border-radius: 6px;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  transition: background 0.15s ease, transform 0.12s ease;
 }
 
 .navLink:hover {
   background: var(--control-bg);
+  transform: translateY(-2px);
 }
 
+/* Theme toggle button */
 .themeBtn {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.2rem;
-  padding: 6px 8px;
+  font-size: 1.3rem;
+  padding: 6px 10px;
   border-radius: 8px;
-  transition: background 0.15s ease, transform 0.12s ease;
   color: var(--text);
+  transition: background 0.15s ease, transform 0.12s ease;
 }
 
 .themeBtn:hover {
@@ -59,13 +79,18 @@
   transform: translateY(-2px);
 }
 
+/* ------------------ MOBILE ADJUSTMENTS ------------------ */
+
 @media (max-width: 600px) {
-  .logo a {
-    font-size: 1.3rem;
+  .title {
+    font-size: 1.6rem;
   }
 
   .navLink {
-    font-size: 0.95rem;
+    font-size: 1rem;
+  }
+
+  .themeBtn {
+    font-size: 1.1rem;
   }
 }
-
