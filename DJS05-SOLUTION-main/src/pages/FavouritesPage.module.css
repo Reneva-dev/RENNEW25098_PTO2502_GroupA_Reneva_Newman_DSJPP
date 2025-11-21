@@ -103,4 +103,16 @@
   background: var(--control-bg);
 }
 
+.resetBtn {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--muted-border);
+  background: var(--control-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.resetBtn:hover {
+  transform: translateY(-2px);
+}
+
 
