@@ -4,6 +4,20 @@ import { useNavigate } from "react-router-dom";
 import styles from "./RecommendedCarousel.module.css";
 import GenreTags from "../UI/GenreTags";
 
+/**
+ * A horizontally scrolling, infinite-loop recommended podcast carousel.
+ *
+ * Features:
+ * - Randomized selection of 10 podcasts
+ * - Cloned slides to create seamless infinite scrolling
+ * - Auto-corrects scroll position when user reaches cloned boundaries
+ * - Manual scroll arrows
+ * - Clickable cards that navigate to podcast detail pages
+ *
+ * @param {Object} props
+ * @param {Array<Object>} props.podcasts - Full list of available podcasts
+ */
+
 export default function RecommendedCarousel({ podcasts }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
