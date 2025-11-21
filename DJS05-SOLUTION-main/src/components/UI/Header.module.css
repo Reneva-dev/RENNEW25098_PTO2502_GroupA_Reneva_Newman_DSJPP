@@ -14,47 +14,41 @@
   width: min(1100px, 90%);
   margin: 0 auto;
   display: flex;
-  justify-content: center; /* Center content */
+  justify-content: space-between; /* Title left, nav items right */
   align-items: center;
-  position: relative;
 }
 
-/* ---------- CENTER TITLE (RETROTUNE RADIO) ---------- */
-.title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 2.4rem;      /* Option A: bigger title */
+/* ---------- TITLE (RETROTUNE RADIO) ---------- */
+.title a {
+  font-size: 2.4rem;      /* Large, bold title */
   font-weight: 900;
-  text-align: center;
+  text-decoration: none;
   color: var(--text);
   letter-spacing: 0.5px;
-  pointer-events: none;    /* Prevent blocking nav buttons */
 }
 
-/* ---------- NAV BAR (RIGHT SIDE ITEMS) ---------- */
+/* ---------- NAVIGATION (RIGHT SIDE) ---------- */
 .nav {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-left: auto; /* Push to the right */
 }
 
-/* Links (Favourites) */
+/* Favourites link */
 .navLink {
   text-decoration: none;
   font-size: 1rem;
   color: var(--text);
   padding: 6px 8px;
   border-radius: 6px;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  transition: background 0.15s ease, transform 0.12s ease;
 }
 
 .navLink:hover {
   background: var(--control-bg);
 }
 
-/* Theme Button */
+/* Theme Toggle Button */
 .themeBtn {
   background: none;
   border: none;
@@ -62,8 +56,8 @@
   font-size: 1.4rem;
   padding: 6px 8px;
   border-radius: 8px;
-  transition: background 0.15s ease, transform 0.12s ease;
   color: var(--text);
+  transition: background 0.15s ease, transform 0.12s ease;
 }
 
 .themeBtn:hover {
@@ -73,7 +67,7 @@
 
 /* ---------- RESPONSIVE MOBILE ---------- */
 @media (max-width: 600px) {
-  .title {
+  .title a {
     font-size: 1.9rem;
   }
 
@@ -85,3 +79,4 @@
     font-size: 1.2rem;
   }
 }
+
