@@ -1,8 +1,7 @@
-// src/components/Podcasts/PodcastDetail.jsx
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./PodcastDetail.module.css";
+
 import GenreTags from "../UI/GenreTags";
 import { formatDate } from "../../utils/formatDate";
 
@@ -28,18 +27,14 @@ export default function PodcastDetail({ podcast, genres }) {
 
   return (
     <div className={styles.container}>
-      {/* BACK BUTTON */}
+      {/* Back Button */}
       <button className={styles.backButton} onClick={() => navigate(-1)}>
         ← Back
       </button>
 
       {/* HEADER */}
       <div className={styles.header}>
-        <img
-          src={podcast.image}
-          className={styles.cover}
-          alt={`${podcast.title} cover`}
-        />
+        <img src={podcast.image} className={styles.cover} alt="" />
 
         <div>
           <h1 className={styles.title}>{podcast.title}</h1>
@@ -76,21 +71,19 @@ export default function PodcastDetail({ podcast, genres }) {
         </div>
       </div>
 
-      {/* SEASON PICKER */}
+      {/* SEASON SELECTOR */}
       <div className={styles.seasonDetails}>
         <div className={styles.seasonIntro}>
           <div className={styles.left}>
-            <img
-              src={season.image}
-              className={styles.seasonCover}
-              alt={`${season.title} cover`}
-            />
+            <img src={season.image} className={styles.seasonCover} alt="" />
 
             <div>
               <h3>
                 Season {selectedSeasonIndex + 1}: {season.title}
               </h3>
+
               <p>{season.description}</p>
+
               <p className={styles.releaseInfo}>
                 {season.episodes.length} Episodes
               </p>
@@ -110,21 +103,17 @@ export default function PodcastDetail({ podcast, genres }) {
           </select>
         </div>
 
-        {/* EPISODE LIST */}
+        {/* EPISODES */}
         <div className={styles.episodeList}>
           {season.episodes.map((ep, index) => {
-            const favourite = isFavourited(
-              podcast.id,
-              selectedSeasonIndex,
-              index
-            );
+            const fav = isFavourited(podcast.id, selectedSeasonIndex, index);
 
             return (
               <div key={index} className={styles.episodeCard}>
                 <img
                   src={season.image}
                   className={styles.episodeCover}
-                  alt={`Episode ${index + 1} cover`}
+                  alt=""
                 />
 
                 <div className={styles.episodeInfo}>
@@ -134,40 +123,29 @@ export default function PodcastDetail({ podcast, genres }) {
                   <p className={styles.episodeDesc}>{ep.description}</p>
                 </div>
 
-                {/* ❤️ FAVOURITE BUTTON */}
+                {/* Favourite Button ❤️ */}
                 <button
                   className={styles.favouriteButton}
                   onClick={() =>
                     toggleFavourite({
-                      id: `${podcast.id}-${selectedSeasonIndex}-${index}`, // ⭐ REQUIRED FOR STORAGE
-
                       podcastId: podcast.id,
                       podcastTitle: podcast.title,
-
                       seasonIndex: selectedSeasonIndex,
                       seasonNumber: selectedSeasonIndex + 1,
-
                       episodeIndex: index,
                       episodeTitle: ep.title,
                       image: season.image,
-
-                      addedAt: Date.now(), // ⭐ Needed for sorting
                     })
                   }
-                  aria-label={
-                    favourite
-                      ? "Remove from favourites"
-                      : "Add to favourites"
-                  }
+                  aria-label={fav ? "Remove favourite" : "Add favourite"}
                 >
-                  {favourite ? "❤️" : "🤍"}
+                  {fav ? "❤️" : "🤍"}
                 </button>
 
-                {/* ▶ PLAY BUTTON */}
+                {/* Play Button ▶ */}
                 <button
                   className={styles.playButton}
                   onClick={() => handlePlayEpisode(ep, index)}
-                  aria-label="Play episode"
                 >
                   ▶
                 </button>
@@ -179,3 +157,4 @@ export default function PodcastDetail({ podcast, genres }) {
     </div>
   );
 }
+
