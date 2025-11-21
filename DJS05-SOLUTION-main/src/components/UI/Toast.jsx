@@ -1,6 +1,24 @@
 import styles from "./Toast.module.css";
 import { useToast } from "../../context/ToastContext";
 
+/**
+ * Toast notification component.
+ *
+ * Displays temporary feedback messages such as:
+ * - Success alerts
+ * - Error alerts
+ * - Undo actions (optional)
+ *
+ * The ToastContext handles:
+ * - Showing a toast
+ * - Hiding a toast
+ * - Managing the message, type, and undo callback
+ *
+ * This component simply renders the toast UI when a toast exists.
+ *
+ * @component
+ */
+
 export default function Toast() {
   const { toast, hideToast } = useToast();
 
